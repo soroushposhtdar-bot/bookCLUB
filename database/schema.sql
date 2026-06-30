@@ -1,0 +1,1 @@
+-- TODO: SQL schema for users, books, orders, reviews, notifications, sessions
