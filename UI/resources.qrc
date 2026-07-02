@@ -1,5 +1,0 @@
-<RCC>
-  <qresource prefix="/assets">
-    <file>assets/qss/login.qss</file>
-  </qresource>
-</RCC>
