@@ -1,5 +1,5 @@
-// src/client/network/ClientNetworkManager.cpp
-#include "src/client/network/ClientNetworkManager.h"
+// src/client/network/SocketManager.cpp
+#include "src/client/network/SocketManager.h"
 #include "common/Utils/Logger.h"
 
 #include <QHostAddress>
@@ -8,12 +8,12 @@
 
 namespace bookclub::client {
 
-ClientNetworkManager& ClientNetworkManager::instance() {
-    static ClientNetworkManager instance;
+SocketManager& SocketManager::instance() {
+    static SocketManager instance;
     return instance;
 }
 
-ClientNetworkManager::ClientNetworkManager(QObject* parent)
+SocketManager::SocketManager(QObject* parent)
     : QObject(parent)
 {
     m_socket = new QTcpSocket(this);
@@ -21,21 +21,21 @@ ClientNetworkManager::ClientNetworkManager(QObject* parent)
     m_reconnectTimer->setSingleShot(true);
     m_reconnectTimer->setInterval(3000);
 
-    connect(m_socket, &QTcpSocket::connected, this, &ClientNetworkManager::onConnected);
-    connect(m_socket, &QTcpSocket::disconnected, this, &ClientNetworkManager::onDisconnected);
-    connect(m_socket, &QTcpSocket::readyRead, this, &ClientNetworkManager::onReadyRead);
+    connect(m_socket, &QTcpSocket::connected, this, &SocketManager::onConnected);
+    connect(m_socket, &QTcpSocket::disconnected, this, &SocketManager::onDisconnected);
+    connect(m_socket, &QTcpSocket::readyRead, this, &SocketManager::onReadyRead);
     connect(m_socket, QOverload<QAbstractSocket::SocketError>::of(&QTcpSocket::errorOccurred),
-            this, &ClientNetworkManager::onError);
-    connect(m_reconnectTimer, &QTimer::timeout, this, &ClientNetworkManager::onReconnectTimeout);
+            this, &SocketManager::onError);
+    connect(m_reconnectTimer, &QTimer::timeout, this, &SocketManager::onReconnectTimeout);
 
-    LOG_INFO("ClientNetworkManager initialized");
+    LOG_INFO("SocketManager initialized");
 }
 
-ClientNetworkManager::~ClientNetworkManager() {
+SocketManager::~SocketManager() {
     disconnectFromServer();
 }
 
-bool ClientNetworkManager::connectToServer(const QString& host, quint16 port) {
+bool SocketManager::connectToServer(const QString& host, quint16 port) {
     if (m_connected) {
         LOG_WARNING("Already connected to server");
         return true;
@@ -56,7 +56,7 @@ bool ClientNetworkManager::connectToServer(const QString& host, quint16 port) {
     return true;
 }
 
-void ClientNetworkManager::disconnectFromServer() {
+void SocketManager::disconnectFromServer() {
     if (!m_connected && !m_socket) return;
 
     LOG_INFO("Disconnecting from server");
@@ -70,11 +70,11 @@ void ClientNetworkManager::disconnectFromServer() {
     m_reconnectTimer->stop();
 }
 
-bool ClientNetworkManager::isConnected() const {
+bool SocketManager::isConnected() const {
     return m_connected && m_socket && m_socket->state() == QAbstractSocket::ConnectedState;
 }
 
-void ClientNetworkManager::sendMessage(const common::Message& message) {
+void SocketManager::sendMessage(const common::Message& message) {
     if (!isConnected()) {
         LOG_ERROR("Cannot send message: not connected to server");
         emit errorOccurred("Not connected to server");
@@ -94,19 +94,19 @@ void ClientNetworkManager::sendMessage(const common::Message& message) {
     LOG_DEBUG("Message sent: " + common::commandToString(message.command()));
 }
 
-void ClientNetworkManager::sendRequest(common::Command command, const QJsonObject& payload) {
+void SocketManager::sendRequest(common::Command command, const QJsonObject& payload) {
     common::Message msg(command, payload);
     sendMessage(msg);
 }
 
-void ClientNetworkManager::registerRequestHandler(common::Command command,
-                                                  std::function<void(const common::Message&)> handler) {
+void SocketManager::registerRequestHandler(common::Command command,
+                                           std::function<void(const common::Message&)> handler) {
     QMutexLocker locker(&m_mutex);
     m_requestHandlers[command] = handler;
     LOG_DEBUG("Registered handler for command: " + common::commandToString(command));
 }
 
-void ClientNetworkManager::unregisterRequestHandler(common::Command command) {
+void SocketManager::unregisterRequestHandler(common::Command command) {
     QMutexLocker locker(&m_mutex);
     m_requestHandlers.remove(command);
     LOG_DEBUG("Unregistered handler for command: " + common::commandToString(command));
@@ -114,14 +114,14 @@ void ClientNetworkManager::unregisterRequestHandler(common::Command command) {
 
 // --- Private Slots ---
 
-void ClientNetworkManager::onConnected() {
+void SocketManager::onConnected() {
     m_connected = true;
     m_reconnectTimer->stop();
     LOG_INFO("Connected to server: " + m_host + ":" + QString::number(m_port));
     emit connected();
 }
 
-void ClientNetworkManager::onDisconnected() {
+void SocketManager::onDisconnected() {
     m_connected = false;
     LOG_INFO("Disconnected from server");
     emit disconnected();
@@ -132,7 +132,7 @@ void ClientNetworkManager::onDisconnected() {
     }
 }
 
-void ClientNetworkManager::onReadyRead() {
+void SocketManager::onReadyRead() {
     if (!m_socket) return;
 
     QByteArray data = m_socket->readAll();
@@ -140,7 +140,7 @@ void ClientNetworkManager::onReadyRead() {
     processPendingPackets();
 }
 
-void ClientNetworkManager::processPendingPackets() {
+void SocketManager::processPendingPackets() {
     while (m_packetParser.hasNextPacket()) {
         common::Message message = m_packetParser.nextPacket();
         if (!message.isValid()) {
@@ -154,7 +154,7 @@ void ClientNetworkManager::processPendingPackets() {
     }
 }
 
-void ClientNetworkManager::handleResponse(const common::Message& response) {
+void SocketManager::handleResponse(const common::Message& response) {
     common::Command cmd = response.command();
 
     QMutexLocker locker(&m_mutex);
@@ -167,7 +167,7 @@ void ClientNetworkManager::handleResponse(const common::Message& response) {
     }
 }
 
-void ClientNetworkManager::onError(QAbstractSocket::SocketError error) {
+void SocketManager::onError(QAbstractSocket::SocketError error) {
     QString errorMsg = m_socket->errorString();
     LOG_ERROR("Socket error: " + errorMsg + " (Code: " + QString::number(error) + ")");
     emit errorOccurred(errorMsg);
@@ -182,7 +182,7 @@ void ClientNetworkManager::onError(QAbstractSocket::SocketError error) {
     }
 }
 
-void ClientNetworkManager::onReconnectTimeout() {
+void SocketManager::onReconnectTimeout() {
     LOG_INFO("Attempting to reconnect to " + m_host + ":" + QString::number(m_port));
     m_socket->connectToHost(m_host, m_port);
     if (m_socket->waitForConnected(3000)) {
