@@ -1,0 +1,14 @@
+build/
+cmake-build-*/
+.idea/
+.vscode/
+*.user
+*.user.*
+*.autosave
+*.pro.user
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.dylib
