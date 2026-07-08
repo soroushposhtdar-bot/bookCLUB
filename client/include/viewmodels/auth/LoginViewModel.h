@@ -1,0 +1,4 @@
+#ifndef LOGINVIEWMODEL_H
+#define LOGINVIEWMODEL_H
+
+#endif // LOGINVIEWMODEL_H
