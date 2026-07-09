@@ -1,3 +1,48 @@
 <RCC>
-    <qresource prefix="/"/>
+    <qresource prefix="/qt/qml/bookclub/client/qml">
+        <file>App.qml</file>
+
+        <!-- Theme -->
+        <file>theme/Theme.qml</file>
+        <file>theme/qmldir</file>
+
+        <!-- Components -->
+        <file>components/AppIcon.qml</file>
+        <file>components/effects/DropShadowBase.qml</file>
+        <file>components/buttons/PrimaryButton.qml</file>
+        <file>components/buttons/SecondaryButton.qml</file>
+        <file>components/buttons/IconButton.qml</file>
+        <file>components/buttons/TextButton.qml</file>
+        <file>components/inputs/InputField.qml</file>
+        <file>components/inputs/PasswordField.qml</file>
+        <file>components/inputs/OtpInput.qml</file>
+        <file>components/inputs/SearchField.qml</file>
+        <file>components/selection/AppCheckbox.qml</file>
+        <file>components/selection/AppRadioButton.qml</file>
+        <file>components/selection/AppToggleButton.qml</file>
+        <file>components/surfaces/Card.qml</file>
+        <file>components/surfaces/Divider.qml</file>
+        <file>components/feedback/ValidationMessage.qml</file>
+        <file>components/feedback/Toast.qml</file>
+        <file>components/feedback/ToastManager.qml</file>
+        <file>components/feedback/ConfirmationPopup.qml</file>
+        <file>components/progress/Spinner.qml</file>
+        <file>components/progress/ProgressBar.qml</file>
+        <file>components/progress/LoadingOverlay.qml</file>
+        <file>components/branding/BrandLogo.qml</file>
+        <file>components/branding/SecurityBadge.qml</file>
+
+        <!-- Layouts -->
+        <file>layouts/AuthLayout.qml</file>
+
+        <!-- Auth pages -->
+        <file>auth/SplashPage.qml</file>
+        <file>auth/WelcomePage.qml</file>
+        <file>auth/LoginPage.qml</file>
+        <file>auth/RegisterPage.qml</file>
+        <file>auth/ForgotPasswordPage.qml</file>
+        <file>auth/ResetPasswordPage.qml</file>
+        <file>auth/GenreSelectionPage.qml</file>
+        <file>auth/SuccessPage.qml</file>
+    </qresource>
 </RCC>

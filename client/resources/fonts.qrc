@@ -1,3 +1,19 @@
 <RCC>
-    <qresource prefix="/"/>
+    <qresource prefix="/fonts">
+        <!--
+            Material Symbols Outlined — Google's icon font.
+
+            To enable icon rendering across the auth module:
+              1. Download MaterialSymbolsOutlined-Regular.ttf from
+                 https://github.com/google/material-design-icons/raw/master/variablefont/MaterialSymbolsOutlined%5BFILL%2CGRAD%2Copsz%2Cwght%5D.ttf
+              2. Save it as client/resources/fonts/MaterialSymbolsOutlined-Regular.ttf
+              3. Re-build — main.cpp will pick it up via QFontDatabase.
+
+            The file is intentionally absent from the repo to avoid bundling
+            Google's binary asset without an explicit license review. The QML
+            icon system (AppIcon.qml) is fully functional without the font —
+            glyphs simply render as the .notdef box until the font is added.
+        -->
+        <!-- <file>fonts/MaterialSymbolsOutlined-Regular.ttf</file> -->
+    </qresource>
 </RCC>

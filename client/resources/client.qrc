@@ -1,3 +1,6 @@
 <RCC>
-    <qresource prefix="/"/>
+    <qresource prefix="/">
+        <file>qml.qrc</file>
+        <file>fonts.qrc</file>
+    </qresource>
 </RCC>
