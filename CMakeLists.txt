@@ -8,9 +8,19 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
-# ---- Find Qt5 (instead of Qt6) ----
-# Headless build: Widgets is not required (no UI is compiled).
-find_package(Qt5 REQUIRED COMPONENTS Core Network Sql)
+# ---- Find Qt5 ----
+# Server requires only Core/Network/Sql; the QML client additionally needs
+# Gui, Quick, QuickControls2, Qml, and GraphicalEffects. We find them all up
+# front so any subdirectory can link against what it needs.
+find_package(Qt5 REQUIRED COMPONENTS
+    Core
+    Gui
+    Network
+    Sql
+    Qml
+    Quick
+    QuickControls2
+)
 
 # ---- Include Directories ----
 include_directories(${CMAKE_SOURCE_DIR})

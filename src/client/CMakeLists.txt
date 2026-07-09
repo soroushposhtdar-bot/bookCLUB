@@ -1,12 +1,15 @@
 # client/CMakeLists.txt
+# =============================================================================
+#  BookClub Qt5 client — QML + MVVM build target.
 #
-# NOTE: The real, implemented client code lives under ${CMAKE_CURRENT_SOURCE_DIR}
-# (not client/src) — this file was previously pointing at a path that doesn't exist.
-# This is a HEADLESS build: MainWindow/LoginWindow/ReaderWindow/RoleDashboardWindow
-# (Qt Widgets UI, header-only stubs with no .cpp yet) and the QML pages (empty
-# placeholders) are intentionally excluded. main.cpp is a console entry point
-# that connects to the server and drives AuthController, useful for testing the
-# implemented controllers/network/session code without any UI.
+#  This file replaces the previous "headless" client build. It now compiles:
+#      • All QML files (via qml.qrc + Client.qrc)
+#      • All auth ViewModels (MVVM, registered with QML via qmlRegisterType)
+#      • The mock AuthService (QML singleton)
+#      • main.cpp entry point with QML engine setup
+#
+#  Required Qt5 modules: Core, Gui, Quick, QuickControls2, Qml, GraphicalEffects
+# =============================================================================
 
 project(bookclub_client)
 
@@ -14,6 +17,18 @@ set(CLIENT_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 # ---- Collect Sources ----
 set(CLIENT_SOURCES
+    # View models (MVVM)
+    ${CLIENT_SRC_DIR}/src/viewmodels/auth/AuthViewModelBase.cpp
+    ${CLIENT_SRC_DIR}/src/viewmodels/auth/LoginViewModel.cpp
+    ${CLIENT_SRC_DIR}/src/viewmodels/auth/RegisterViewModel.cpp
+    ${CLIENT_SRC_DIR}/src/viewmodels/auth/ForgotPasswordViewModel.cpp
+    ${CLIENT_SRC_DIR}/src/viewmodels/auth/ResetPasswordViewModel.cpp
+    ${CLIENT_SRC_DIR}/src/viewmodels/auth/GenreSelectionViewModel.cpp
+
+    # Services (mocked auth)
+    ${CLIENT_SRC_DIR}/src/services/AuthService.cpp
+
+    # Existing controllers (kept for parity with the rest of the project)
     ${CLIENT_SRC_DIR}/controllers/AuthController.cpp
     ${CLIENT_SRC_DIR}/controllers/BookCatalogController.cpp
     ${CLIENT_SRC_DIR}/controllers/CartController.cpp
@@ -23,12 +38,28 @@ set(CLIENT_SOURCES
     ${CLIENT_SRC_DIR}/controllers/NotificationController.cpp
     ${CLIENT_SRC_DIR}/controllers/ReaderController.cpp
     ${CLIENT_SRC_DIR}/controllers/StudySessionController.cpp
+
+    # Networking / session
     ${CLIENT_SRC_DIR}/network/ClientNetworkManager.cpp
     ${CLIENT_SRC_DIR}/session/SessionManager.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
+
+    # Entry point
+    ${CLIENT_SRC_DIR}/main.cpp
 )
 
 set(CLIENT_HEADERS
+    # View models
+    ${CLIENT_SRC_DIR}/include/viewmodels/auth/AuthViewModelBase.h
+    ${CLIENT_SRC_DIR}/include/viewmodels/auth/LoginViewModel.h
+    ${CLIENT_SRC_DIR}/include/viewmodels/auth/RegisterViewModel.h
+    ${CLIENT_SRC_DIR}/include/viewmodels/auth/ForgotPasswordViewModel.h
+    ${CLIENT_SRC_DIR}/include/viewmodels/auth/ResetPasswordViewModel.h
+    ${CLIENT_SRC_DIR}/include/viewmodels/auth/GenreSelectionViewModel.h
+
+    # Services
+    ${CLIENT_SRC_DIR}/include/services/AuthService.h
+
+    # Existing controllers
     ${CLIENT_SRC_DIR}/controllers/AuthController.h
     ${CLIENT_SRC_DIR}/controllers/BookCatalogController.h
     ${CLIENT_SRC_DIR}/controllers/CartController.h
@@ -42,20 +73,47 @@ set(CLIENT_HEADERS
     ${CLIENT_SRC_DIR}/session/SessionManager.h
 )
 
+# ---- Resources (QML + fonts) ----
+set(CLIENT_RESOURCES
+    ${CLIENT_SRC_DIR}/resources/qml.qrc
+    ${CLIENT_SRC_DIR}/resources/fonts.qrc
+)
+
 # ---- Build Executable ----
-add_executable(BookClubClient ${CLIENT_SOURCES} ${CLIENT_HEADERS})
+add_executable(BookClubClient
+    ${CLIENT_SOURCES}
+    ${CLIENT_HEADERS}
+    ${CLIENT_RESOURCES}
+)
+
+# ---- Qt5 modules ----
+# Note: the parent CMakeLists.txt currently finds only Core/Network/Sql.
+# For the QML client we additionally need Gui, Quick, QuickControls2, Qml,
+# and GraphicalEffects. We find them here so the existing headless server
+# build is unaffected.
+find_package(Qt5 REQUIRED COMPONENTS Gui Quick QuickControls2 Qml Network Sql)
+
+set_target_properties(BookClubClient PROPERTIES
+    AUTOMOC ON
+    AUTORCC ON
+)
 
 # ---- Link Libraries ----
 target_link_libraries(BookClubClient
     bookclub_common
     Qt5::Core
+    Qt5::Gui
+    Qt5::Quick
+    Qt5::QuickControls2
+    Qt5::Qml
     Qt5::Network
     Qt5::Sql
 )
 
 # ---- Include Directories ----
 target_include_directories(BookClubClient PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CLIENT_SRC_DIR}
+    ${CLIENT_SRC_DIR}/include
     ${CMAKE_SOURCE_DIR}
 )
 
@@ -64,3 +122,17 @@ set_target_properties(BookClubClient PROPERTIES
     OUTPUT_NAME "BookClubClient"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
 )
+
+# ---- macOS bundle hints (optional) ----
+if(APPLE)
+    set_target_properties(BookClubClient PROPERTIES
+        MACOSX_BUNDLE TRUE
+        MACOSX_BUNDLE_GUI_IDENTIFIER "com.bookclub.client"
+    )
+endif()
+
+# ---- Linux desktop file (optional) ----
+if(UNIX AND NOT APPLE)
+    install(FILES ${CMAKE_SOURCE_DIR}/installer/linux/bookclub.desktop
+            DESTINATION share/applications)
+endif()
