@@ -4,13 +4,51 @@
 #include "src/server/RequestRouter.h"
 #include "src/server/RequestHandlerBase.h"
 #include "src/server/DatabaseManager.h"
+
+// ---- Include Handlers ----
+#include "src/server/handlers/AuthRequestHandler.h"
+#include "src/server/handlers/BookRequestHandler.h"
+#include "src/server/handlers/CartRequestHandler.h"
+#include "src/server/handlers/LibraryRequestHandler.h"
+#include "src/server/handlers/PublisherRequestHandler.h"
+#include "src/server/handlers/AdminRequestHandler.h"
+#include "src/server/handlers/NotificationRequestHandler.h"
+#include "src/server/handlers/StudySessionRequestHandler.h"
+
+// ---- Include Services & Repositories (از common) ----
+#include "common/Interfaces/IAuthService.h"
+#include "common/Interfaces/IUserRepository.h"
+#include "common/Interfaces/IBookService.h"
+#include "common/Interfaces/IBookRepository.h"
+#include "common/Interfaces/IOrderRepository.h"
+#include "common/Interfaces/IReviewRepository.h"
+#include "common/Interfaces/INotificationRepository.h"
+#include "src/server/StudySessionManager.h"
+#include "src/server/NotificationDispatcher.h"
+// ---- Include concrete implementations (از common) ----
+// این کلاس‌ها در common/Interfaces/ پیاده‌سازی شده‌اند
+// و از توابع create برای ساخت نمونه استفاده می‌کنیم
+
 #include "common/Utils/Logger.h"
 #include "common/Utils/FileSystemUtils.h"
 
 #include <QCoreApplication>
 #include <QDir>
 
+
 namespace bookclub::server {
+
+// ---- Static instances for dependencies ----
+static common::IAuthService* s_authService = nullptr;
+static common::IUserRepository* s_userRepo = nullptr;
+static common::IBookService* s_bookService = nullptr;
+static common::IBookRepository* s_bookRepo = nullptr;
+static common::IOrderRepository* s_orderRepo = nullptr;
+static common::IReviewRepository* s_reviewRepo = nullptr;
+static common::INotificationRepository* s_notifRepo = nullptr;
+
+static StudySessionManager* s_sessionManager = nullptr;
+static NotificationDispatcher* s_notifDispatcher = nullptr;
 
 ServerCore::ServerCore(QObject* parent)
     : QObject(parent)
@@ -33,6 +71,9 @@ ServerCore::~ServerCore()
     shutdown();
 }
 
+// ============================================================
+// initialize: راه‌اندازی سرور
+// ============================================================
 bool ServerCore::initialize(const QString& dbPath, quint16 port)
 {
     LOG_INFO("Initializing server...");
@@ -43,10 +84,13 @@ bool ServerCore::initialize(const QString& dbPath, quint16 port)
         return false;
     }
 
-    // 2. Register default handlers
+    // 2. Initialize dependencies (سرویس‌ها و ریپازیتوری‌ها)
+    initializeDependencies();
+
+    // 3. Register default handlers
     registerDefaultHandlers();
 
-    // 3. Start server
+    // 4. Start server
     if (!m_connectionManager->startServer(port)) {
         LOG_ERROR("Failed to start server on port " + QString::number(port));
         return false;
@@ -115,17 +159,151 @@ bool ServerCore::setupDatabase(const QString& dbPath)
     return true;
 }
 
-void ServerCore::registerDefaultHandlers()
+// ============================================================
+// initializeDependencies: ساخت سرویس‌ها و ریپازیتوری‌ها
+// ============================================================
+void ServerCore::initializeDependencies()
 {
-    // TODO: Register default handlers here
-    // For example:
-    // registerHandler(common::Command::Login, new AuthHandler(this));
-    // registerHandler(common::Command::Register, new AuthHandler(this));
-    // registerHandler(common::Command::GetHomeSections, new BookHandler(this));
-    // ...
-    LOG_INFO("Default handlers registered (TODOs)");
+    if (s_authService) {
+        return; // قبلاً ساخته شده
+    }
+
+    LOG_INFO("Initializing dependencies...");
+
+    // ---- ساخت ریپازیتوری‌ها (با استفاده از توابع create در common) ----
+    s_userRepo = common::createUserRepository();
+    s_bookRepo = common::createBookRepository();
+    s_orderRepo = common::createOrderRepository();
+    s_reviewRepo = common::createReviewRepository();
+    s_notifRepo = common::createNotificationRepository();
+
+    // ---- ساخت سرویس‌ها ----
+    s_authService = common::createAuthService();
+    s_bookService = common::createBookService(s_bookRepo, s_userRepo, s_orderRepo, s_reviewRepo);
+
+    // ---- ساخت مدیران (برای مطالعه گروهی و اعلان‌ها) ----
+    s_sessionManager = new StudySessionManager(m_connectionManager);
+    s_notifDispatcher = new NotificationDispatcher(m_connectionManager);
+
+    LOG_INFO("Dependencies initialized successfully");
 }
 
+// ============================================================
+// registerDefaultHandlers: ثبت تمام هندلرها در RequestRouter
+// ============================================================
+void ServerCore::registerDefaultHandlers()
+{
+    LOG_INFO("Registering default handlers...");
+
+    // اطمینان از اینکه وابستگی‌ها ساخته شده‌اند
+    if (!s_authService || !s_userRepo || !s_bookService || !s_bookRepo ||
+        !s_orderRepo || !s_reviewRepo || !s_notifRepo) {
+        LOG_ERROR("Dependencies not initialized. Cannot register handlers.");
+        return;
+    }
+
+    // ---- ثبت Auth Handlers ----
+    registerHandler(common::Command::Login,
+                    new AuthRequestHandler(s_authService, s_userRepo, this));
+    registerHandler(common::Command::Register,
+                    new AuthRequestHandler(s_authService, s_userRepo, this));
+    registerHandler(common::Command::ResetPassword,
+                    new AuthRequestHandler(s_authService, s_userRepo, this));
+    registerHandler(common::Command::ChangePassword,
+                    new AuthRequestHandler(s_authService, s_userRepo, this));
+    registerHandler(common::Command::Logout,
+                    new AuthRequestHandler(s_authService, s_userRepo, this));
+
+    // ---- ثبت Book Handlers ----
+    registerHandler(common::Command::GetHomeSections,
+                    new BookRequestHandler(s_bookService, s_bookRepo, this));
+    registerHandler(common::Command::SearchBooks,
+                    new BookRequestHandler(s_bookService, s_bookRepo, this));
+    registerHandler(common::Command::GetBookDetails,
+                    new BookRequestHandler(s_bookService, s_bookRepo, this));
+
+    // ---- ثبت Cart Handlers ----
+    registerHandler(common::Command::AddToCart,
+                    new CartRequestHandler(s_bookService, s_orderRepo, this));
+    registerHandler(common::Command::RemoveFromCart,
+                    new CartRequestHandler(s_bookService, s_orderRepo, this));
+    registerHandler(common::Command::GetCart,
+                    new CartRequestHandler(s_bookService, s_orderRepo, this));
+    registerHandler(common::Command::Checkout,
+                    new CartRequestHandler(s_bookService, s_orderRepo, this));
+    registerHandler(common::Command::ApplyDiscount,
+                    new CartRequestHandler(s_bookService, s_orderRepo, this));
+
+    // ---- ثبت Library Handlers ----
+    registerHandler(common::Command::GetLibrary,
+                    new LibraryRequestHandler(s_userRepo, this));
+    registerHandler(common::Command::GetPurchasedBooks,
+                    new LibraryRequestHandler(s_userRepo, this));
+    registerHandler(common::Command::CreateShelf,
+                    new LibraryRequestHandler(s_userRepo, this));
+    registerHandler(common::Command::DeleteShelf,
+                    new LibraryRequestHandler(s_userRepo, this));
+    registerHandler(common::Command::AddBookToShelf,
+                    new LibraryRequestHandler(s_userRepo, this));
+    registerHandler(common::Command::RemoveBookFromShelf,
+                    new LibraryRequestHandler(s_userRepo, this));
+
+    // ---- ثبت Publisher Handlers ----
+    registerHandler(common::Command::GetPublisherBooks,
+                    new PublisherRequestHandler(s_bookService, s_bookRepo, this));
+    registerHandler(common::Command::PublishBook,
+                    new PublisherRequestHandler(s_bookService, s_bookRepo, this));
+    registerHandler(common::Command::UpdateBook,
+                    new PublisherRequestHandler(s_bookService, s_bookRepo, this));
+    registerHandler(common::Command::DeactivateBook,
+                    new PublisherRequestHandler(s_bookService, s_bookRepo, this));
+    registerHandler(common::Command::ActivateBook,
+                    new PublisherRequestHandler(s_bookService, s_bookRepo, this));
+    registerHandler(common::Command::ApplyTimedDiscount,
+                    new PublisherRequestHandler(s_bookService, s_bookRepo, this));
+    registerHandler(common::Command::GetPublisherAnalytics,
+                    new PublisherRequestHandler(s_bookService, s_bookRepo, this));
+
+    // ---- ثبت Admin Handlers ----
+    registerHandler(common::Command::GetUsersList,
+                    new AdminRequestHandler(s_userRepo, s_bookRepo, this));
+    registerHandler(common::Command::BlockUser,
+                    new AdminRequestHandler(s_userRepo, s_bookRepo, this));
+    registerHandler(common::Command::UnblockUser,
+                    new AdminRequestHandler(s_userRepo, s_bookRepo, this));
+    registerHandler(common::Command::DeleteUser,
+                    new AdminRequestHandler(s_userRepo, s_bookRepo, this));
+    registerHandler(common::Command::ModerateBook,
+                    new AdminRequestHandler(s_userRepo, s_bookRepo, this));
+    registerHandler(common::Command::RemoveBookByAdmin,
+                    new AdminRequestHandler(s_userRepo, s_bookRepo, this));
+
+    // ---- ثبت Notification Handlers ----
+    registerHandler(common::Command::GetNotifications,
+                    new NotificationRequestHandler(s_notifRepo, this));
+    registerHandler(common::Command::MarkNotificationRead,
+                    new NotificationRequestHandler(s_notifRepo, this));
+    registerHandler(common::Command::MarkAllNotificationsRead,
+                    new NotificationRequestHandler(s_notifRepo, this));
+
+    // ---- ثبت Study Session Handlers (بخش امتیازی) ----
+    if (s_sessionManager) {
+        registerHandler(common::Command::CreateStudySession,
+                        new StudySessionRequestHandler(s_sessionManager, this));
+        registerHandler(common::Command::JoinStudySession,
+                        new StudySessionRequestHandler(s_sessionManager, this));
+        registerHandler(common::Command::LeaveStudySession,
+                        new StudySessionRequestHandler(s_sessionManager, this));
+        registerHandler(common::Command::SyncStudyPage,
+                        new StudySessionRequestHandler(s_sessionManager, this));
+    }
+
+    LOG_INFO("All default handlers registered successfully");
+}
+
+// ============================================================
+// Slots
+// ============================================================
 void ServerCore::onClientConnected(const QString& clientId)
 {
     LOG_INFO("Client connected: " + clientId);

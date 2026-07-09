@@ -2,7 +2,8 @@
 #include "src/server/DatabaseManager.h"
 #include <QDebug>
 #include <QSqlRecord>
-
+#include <QFile>
+#include <QTextStream>
 namespace bookclub::server {
 
 DatabaseManager& DatabaseManager::instance() {
@@ -31,6 +32,18 @@ bool DatabaseManager::initialize(const QString& dbPath) {
         qCritical() << "Failed to open database:" << m_lastError;
         emit errorOccurred(m_lastError);
         return false;
+    }
+
+    // ---- ۱. اجرای اسکریپت ایجاد جداول (اجباری) ----
+    if (!runSchemaScript()) {
+        qCritical() << "Failed to run schema script";
+        return false;
+    }
+
+    // ---- ۲. اجرای اسکریپت داده‌های نمونه (اختیاری) ----
+    if (!runSeedScript()) {
+        qWarning() << "Seed script failed, but continuing...";
+        // خطای seed را نادیده می‌گیریم تا سرور متوقف نشود
     }
 
     m_initialized = true;
@@ -127,3 +140,75 @@ QString DatabaseManager::lastError() const {
 }
 
 } // namespace bookclub::server
+bool DatabaseManager::runSchemaScript() {
+    // بررسی اینکه آیا جداول از قبل وجود دارند
+    QSqlQuery checkQuery(m_db);
+    checkQuery.exec("SELECT name FROM sqlite_master WHERE type='table' AND name='Users'");
+    if (checkQuery.next()) {
+        // جداول وجود دارند، نیازی به اجرای مجدد نیست
+        qDebug() << "Tables already exist. Skipping schema creation.";
+        return true;
+    }
+
+    // خواندن فایل schema.sql
+    QFile schemaFile("database/schema.sql");
+    if (!schemaFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        qCritical() << "Could not open schema.sql file";
+        return false;
+    }
+
+    QString schemaScript = QString::fromUtf8(schemaFile.readAll());
+    schemaFile.close();
+
+    // اجرای اسکریپت (تقسیم به کوئری‌های جداگانه با جداکننده ';')
+    QStringList queries = schemaScript.split(';', Qt::SkipEmptyParts);
+    for (const QString& query : queries) {
+        QString trimmedQuery = query.trimmed();
+        if (trimmedQuery.isEmpty()) continue;
+
+        QSqlQuery sqlQuery(m_db);
+        if (!sqlQuery.exec(trimmedQuery)) {
+            qCritical() << "Failed to execute query:" << trimmedQuery;
+            qCritical() << "Error:" << sqlQuery.lastError().text();
+            return false;
+        }
+    }
+
+    qDebug() << "Schema created successfully";
+    return true;
+}
+
+bool DatabaseManager::runSeedScript() {
+    // بررسی اینکه آیا داده‌های نمونه قبلاً وارد شده‌اند
+    QSqlQuery checkQuery(m_db);
+    checkQuery.exec("SELECT COUNT(*) FROM Users");
+    if (checkQuery.next() && checkQuery.value(0).toInt() > 0) {
+        qDebug() << "Data already exists. Skipping seed.";
+        return true;
+    }
+
+    QFile seedFile("database/seeds/sample_data.sql");
+    if (!seedFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        qWarning() << "Could not open sample_data.sql file (seeding skipped)";
+        return true; // عدم وجود فایل نمونه خطا نیست
+    }
+
+    QString seedScript = QString::fromUtf8(seedFile.readAll());
+    seedFile.close();
+
+    QStringList queries = seedScript.split(';', Qt::SkipEmptyParts);
+    for (const QString& query : queries) {
+        QString trimmedQuery = query.trimmed();
+        if (trimmedQuery.isEmpty()) continue;
+
+        QSqlQuery sqlQuery(m_db);
+        if (!sqlQuery.exec(trimmedQuery)) {
+            qWarning() << "Failed to execute seed query:" << trimmedQuery;
+            qWarning() << "Error:" << sqlQuery.lastError().text();
+            // خطای seed را نادیده می‌گیریم تا برنامه متوقف نشود
+        }
+    }
+
+    qDebug() << "Seed data inserted successfully";
+    return true;
+}

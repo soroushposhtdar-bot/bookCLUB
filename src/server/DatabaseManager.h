@@ -43,6 +43,8 @@ private:
     DatabaseManager(const DatabaseManager&) = delete;
     DatabaseManager& operator=(const DatabaseManager&) = delete;
 
+    bool runSchemaScript();
+    bool runSeedScript();
     QSqlDatabase m_db;
     QString m_lastError;
     QMutex m_mutex;

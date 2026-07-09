@@ -44,6 +44,7 @@ private slots:
 
 private:
     bool setupDatabase(const QString& dbPath);
+    void initializeDependencies();          // ← این خط اضافه شده
     void registerDefaultHandlers();
 
     QPointer<DatabaseManager> m_db;
