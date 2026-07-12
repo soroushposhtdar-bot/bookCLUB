@@ -1,12 +1,13 @@
 // =============================================================================
 //  GenreSelectionPage.qml
 // =============================================================================
-//  Post-registration / first-login step — user picks 3+ favourite genres so
+//  Post-registration / first-login step — user picks 1-3 favourite genres so
 //  the recommendation engine has a starting signal.
 //
 //  Multi-select grid of genre chips; canSubmit becomes true once the user has
-//  selected at least N (default 3). On submit, GenreSelectionViewModel stores
-//  the choices and emits completed().
+//  selected at least `minSelection` (default 1). The grid enforces a hard
+//  cap of `maxSelection` (default 3) — chips beyond the cap are disabled.
+//  On submit, GenreSelectionViewModel stores the choices and emits completed().
 //
 //  This page replaces the typical split-screen layout — it's wider and uses a
 //  full-bleed centered card with a grid of selectable chips.
@@ -26,7 +27,8 @@ Item {
 
     property var viewModel: null   // GenreSelectionViewModel
     property bool isBusy: viewModel ? viewModel.isSubmitting : false
-    property int minSelection: 3
+    property int minSelection: viewModel ? viewModel.minSelection : 1
+    property int maxSelection: 3   // spec: "1-3 genres"
 
     signal completed()
     signal backRequested()
@@ -100,7 +102,7 @@ Item {
                 spacing: Theme.space.sm
 
                 Text {
-                    text: (root.viewModel ? root.viewModel.selectedCount : 0) + " / " + root.minSelection
+                    text: (root.viewModel ? root.viewModel.selectedCount : 0) + " / " + root.maxSelection
                     color: (root.viewModel ? root.viewModel.selectedCount : 0) >= root.minSelection
                            ? Theme.color.success
                            : Theme.color.textSecondary
@@ -179,6 +181,9 @@ Item {
                             anchors.fill: parent
                             cursorShape: Qt.PointingHandCursor
                             hoverEnabled: true
+                            // Enforce max-3 cap: if already at max and this genre
+                            // is not yet selected, block the click.
+                            enabled: isSelected || (root.viewModel ? root.viewModel.selectedCount : 0) < root.maxSelection
                             onClicked: {
                                 if (root.viewModel) root.viewModel.toggleGenre(modelData)
                             }
@@ -190,8 +195,8 @@ Item {
                             origin.y: height / 2
                             xScale: mouseArea.containsMouse && !isSelected ? 1.02 : 1.0
                             yScale: mouseArea.containsMouse && !isSelected ? 1.02 : 1.0
-                            Behavior on xScale { NumberAnimation { duration: 100 } }
-                            Behavior on yScale { NumberAnimation { duration: 100 } }
+                            Behavior on xScale { NumberAnimation { duration: Theme.motion.durationInstant } }
+                            Behavior on yScale { NumberAnimation { duration: Theme.motion.durationInstant } }
                         }
                     }
                 }

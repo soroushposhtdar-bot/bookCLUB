@@ -24,6 +24,7 @@ import "../components/selection"
 import "../components/surfaces"
 import "../components/feedback"
 import "../components/progress"
+import "../components/effects"
 
 Item {
     id: root

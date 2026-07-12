@@ -32,9 +32,10 @@ bool AuthService::verifySecurityAnswer(const QString& username, const QString& a
     auto it = _users.constFind(username.trimmed().toLower());
     if (it == _users.constEnd()) return false;
 
-    // Compare hashed, case-insensitively.
+    // Compare the normalized answer against the stored hash.
+    // Security answers are stored hashed (case-insensitively) at registration
+    // time, so we normalize the input the same way before verifying.
     const QString normalizedAnswer = answer.trimmed().toLower();
-    const QString hash = bookclub::common::PasswordHasher::hash(normalizedAnswer);
     return bookclub::common::PasswordHasher::verify(normalizedAnswer, it->securityAnswerHash);
 }
 
@@ -49,11 +50,32 @@ bool AuthService::login(const QString& username, const QString& password, QStrin
         errorMessage = QStringLiteral("No account found with that username.");
         return false;
     }
+    if (it->status == QStringLiteral("Blocked")) {
+        errorMessage = QStringLiteral("This account has been blocked. Please contact support.");
+        return false;
+    }
     if (!bookclub::common::PasswordHasher::verify(password, it->passwordHash)) {
         errorMessage = QStringLiteral("Incorrect password. Please try again.");
         return false;
     }
+
+    // Track current session state for QML.
+    _currentUsername    = it->username;
+    _currentDisplayName = it->displayName;
+    _currentRole        = it->role;
+    emit currentUsernameChanged();
+    emit currentDisplayNameChanged();
+    emit currentRoleChanged();
     return true;
+}
+
+void AuthService::logout() {
+    _currentUsername.clear();
+    _currentDisplayName.clear();
+    _currentRole.clear();
+    emit currentUsernameChanged();
+    emit currentDisplayNameChanged();
+    emit currentRoleChanged();
 }
 
 bool AuthService::registerUser(const QString& username,
@@ -180,7 +202,8 @@ void AuthService::seedDemoUser(const QString& username,
                                 const QString& displayName,
                                 const QString& password,
                                 const QString& securityQuestion,
-                                const QString& securityAnswer) {
+                                const QString& securityAnswer,
+                                const QString& role) {
     MockUser u;
     u.id = bookclub::common::IdGenerator::generateUuid();
     u.username = username.trimmed();
@@ -190,20 +213,59 @@ void AuthService::seedDemoUser(const QString& username,
     u.securityAnswerHash = bookclub::common::PasswordHasher::hash(securityAnswer.trimmed().toLower());
     u.requiresGenreSetup = false;
     u.selectedGenres = { QStringLiteral("Fiction"), QStringLiteral("Mystery"), QStringLiteral("Fantasy") };
+    u.role = role;
     _users.insert(username.trimmed().toLower(), u);
 }
 
 void AuthService::_seedDefaults() {
+    // Reader (regular user) accounts
     seedDemoUser(QStringLiteral("alice"),
                  QStringLiteral("Alice Reader"),
                  QStringLiteral("password123"),
                  QStringLiteral("What was the name of your first pet?"),
-                 QStringLiteral("whiskers"));
+                 QStringLiteral("whiskers"),
+                 QStringLiteral("user"));
     seedDemoUser(QStringLiteral("bob"),
                  QStringLiteral("Bob Bibliophile"),
                  QStringLiteral("password123"),
                  QStringLiteral("In what city were you born?"),
-                 QStringLiteral("london"));
+                 QStringLiteral("london"),
+                 QStringLiteral("user"));
+
+    // Publisher demo account — opens the Publisher dashboard
+    seedDemoUser(QStringLiteral("publisher"),
+                 QStringLiteral("Penguin Press"),
+                 QStringLiteral("password123"),
+                 QStringLiteral("What was the title of your favourite childhood book?"),
+                 QStringLiteral("alice"),
+                 QStringLiteral("publisher"));
+
+    // Admin demo account — opens the Admin moderation panel
+    seedDemoUser(QStringLiteral("admin"),
+                 QStringLiteral("System Admin"),
+                 QStringLiteral("password123"),
+                 QStringLiteral("What was the make of your first car?"),
+                 QStringLiteral("volvo"),
+                 QStringLiteral("admin"));
+
+    // Server operator demo account — opens the Server dashboard
+    seedDemoUser(QStringLiteral("server"),
+                 QStringLiteral("Server Operator"),
+                 QStringLiteral("password123"),
+                 QStringLiteral("What is your mother's maiden name?"),
+                 QStringLiteral("smith"),
+                 QStringLiteral("server"));
+
+    // Blocked demo account — for testing the "blocked users can't access" spec
+    seedDemoUser(QStringLiteral("blocked"),
+                 QStringLiteral("Blocked User"),
+                 QStringLiteral("password123"),
+                 QStringLiteral("What was the name of your first pet?"),
+                 QStringLiteral("blocked"),
+                 QStringLiteral("user"));
+    // Manually set the blocked user's status
+    auto it = _users.find(QStringLiteral("blocked"));
+    if (it != _users.end()) it->status = QStringLiteral("Blocked");
 }
 
 } // namespace bookclub::client

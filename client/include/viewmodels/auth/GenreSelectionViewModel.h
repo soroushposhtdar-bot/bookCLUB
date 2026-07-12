@@ -49,7 +49,7 @@ public:
     QStringList selectedGenres() const { return m_selectedGenres; }
     int selectedCount() const { return m_selectedGenres.size(); }
     bool canGoBack() const { return false; }   // first-login — no back
-    int minSelection() const { return 3; }
+    int minSelection() const { return 1; }  // spec: select 1-3 genres
 
 public slots:
     Q_INVOKABLE void toggleGenre(const QString& genre);

@@ -71,7 +71,7 @@ Item {
 
                     SequentialAnimation {
                         running: true
-                        NumberAnimation { target: _iconBg; property: "scale"; from: 0.0; to: 1.0; duration: 380; easing.type: Easing.OutBack }
+                        NumberAnimation { target: _iconBg; property: "scale"; from: 0.0; to: 1.0; duration: Theme.motion.durationSlow; easing.type: Easing.OutBack }
                         PauseAnimation { duration: 0 }
                     }
                 }
@@ -87,8 +87,8 @@ Item {
 
                     SequentialAnimation {
                         running: true
-                        PauseAnimation { duration: 220 }
-                        NumberAnimation { target: parent; property: "scale"; from: 0.0; to: 1.0; duration: 280; easing.type: Easing.OutBack }
+                        PauseAnimation { duration: Theme.motion.durationBase }
+                        NumberAnimation { target: parent; property: "scale"; from: 0.0; to: 1.0; duration: Theme.motion.durationBase; easing.type: Easing.OutBack }
                     }
                 }
             }

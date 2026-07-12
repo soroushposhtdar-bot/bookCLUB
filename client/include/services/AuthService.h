@@ -34,6 +34,8 @@ struct MockUser {
     QString securityAnswerHash;
     QStringList selectedGenres;
     bool requiresGenreSetup = false;
+    QString role = QStringLiteral("user");  // user | publisher | admin | server
+    QString status = QStringLiteral("Active");  // Active | Blocked
 };
 
 class AuthService : public QObject {
@@ -41,8 +43,23 @@ class AuthService : public QObject {
     QML_ELEMENT
     QML_SINGLETON
 
+    // The role of the currently logged-in user. Empty until login succeeds.
+    // One of: "user", "publisher", "admin", "server".
+    Q_PROPERTY(QString currentRole     READ currentRole     NOTIFY currentRoleChanged)
+    Q_PROPERTY(QString currentUsername  READ currentUsername  NOTIFY currentUsernameChanged)
+    Q_PROPERTY(QString currentDisplayName READ currentDisplayName NOTIFY currentDisplayNameChanged)
+    Q_PROPERTY(bool    isLoggedIn       READ isLoggedIn       NOTIFY currentRoleChanged)
+
 public:
     explicit AuthService(QObject* parent = nullptr);
+
+    // ----- Current-session state -----
+    QString currentRole()        const { return _currentRole; }
+    QString currentUsername()    const { return _currentUsername; }
+    QString currentDisplayName() const { return _currentDisplayName; }
+    bool    isLoggedIn()         const { return !_currentUsername.isEmpty(); }
+
+    Q_INVOKABLE void logout();
 
     // ----- Public API -----
     Q_INVOKABLE bool userExists(const QString& username) const;
@@ -84,11 +101,21 @@ public:
                       const QString& displayName,
                       const QString& password,
                       const QString& securityQuestion,
-                      const QString& securityAnswer);
+                      const QString& securityAnswer,
+                      const QString& role = QStringLiteral("user"));
+
+signals:
+    void currentRoleChanged();
+    void currentUsernameChanged();
+    void currentDisplayNameChanged();
 
 private:
     QHash<QString, MockUser> _users;
     QHash<QString, QString> _resetTokens;  // username → token
+
+    QString _currentRole;
+    QString _currentUsername;
+    QString _currentDisplayName;
 
     void _seedDefaults();
 };

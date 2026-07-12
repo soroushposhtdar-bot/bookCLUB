@@ -125,7 +125,7 @@ FocusScope {
                     anchors.fill: parent
                     color: Theme.color.textPrimary
                     font.family: Theme.font.family
-                    font.pixelSize: 22
+                    font.pixelSize: Theme.font.sizeHeadline
                     font.weight: Theme.font.weightSemibold
                     horizontalAlignment: TextInput.AlignHCenter
                     verticalAlignment: TextInput.AlignVCenter
@@ -204,10 +204,10 @@ FocusScope {
 
     SequentialAnimation {
         id: _shake
-        PropertyAnimation { target: _row; property: "x"; to: 6;  duration: 50 }
-        PropertyAnimation { target: _row; property: "x"; to: -6; duration: 50 }
-        PropertyAnimation { target: _row; property: "x"; to: 4;  duration: 50 }
-        PropertyAnimation { target: _row; property: "x"; to: -4; duration: 50 }
-        PropertyAnimation { target: _row; property: "x"; to: 0;  duration: 50 }
+        PropertyAnimation { target: _row; property: "x"; to: 6;  duration: Theme.motion.durationInstant }
+        PropertyAnimation { target: _row; property: "x"; to: -6; duration: Theme.motion.durationInstant }
+        PropertyAnimation { target: _row; property: "x"; to: 4;  duration: Theme.motion.durationInstant }
+        PropertyAnimation { target: _row; property: "x"; to: -4; duration: Theme.motion.durationInstant }
+        PropertyAnimation { target: _row; property: "x"; to: 0;  duration: Theme.motion.durationInstant }
     }
 }
