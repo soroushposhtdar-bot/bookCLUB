@@ -12,7 +12,7 @@ class UserLibrary : public QObject {
     Q_OBJECT
 public:
     explicit UserLibrary(QObject* parent = nullptr);
-    ~UserLibrary() override = default;
+    ~UserLibrary() override;
 
     const QString& userId() const;
     const QStringList& purchasedBookIds() const;

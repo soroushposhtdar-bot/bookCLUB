@@ -3,6 +3,7 @@
 
 #include <QJsonObject>
 #include <QJsonArray>
+#include <QVector>
 #include "common/Models/Book.h"
 #include "common/Models/UserAccount.h"
 // سایر مدل‌ها...

@@ -21,7 +21,7 @@ public:
 
     // ---- Parsing ----
     static QDateTime fromIsoString(const QString& isoString);
-    static QDateTime fromString(const QString& str, const QString& format = Qt::ISODate);
+    static QDateTime fromString(const QString& str, const QString& format = "yyyy-MM-ddTHH:mm:ss");
 
     // ---- Calculations ----
     static qint64 secondsBetween(const QDateTime& from, const QDateTime& to);

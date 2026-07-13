@@ -47,10 +47,10 @@ Message Message::fromJson(const QJsonObject& json) {
     Status status = Status::Success;
 
     if (json.contains("command") && json["command"].isDouble()) {
-        cmd = static_cast<Command>(json["command"].toInteger());
+        cmd = static_cast<Command>(json["command"].toInt());
     }
     if (json.contains("status") && json["status"].isDouble()) {
-        status = static_cast<Status>(json["status"].toInteger());
+        status = static_cast<Status>(json["status"].toInt());
     }
 
     Message msg(cmd, status);

@@ -35,7 +35,7 @@ class Order : public QObject {
 public:
     explicit Order(QObject* parent = nullptr);
     Order(const QString& id, QObject* parent = nullptr);
-    ~Order() override = default;
+    ~Order() override;
 
     const QString& id() const;
     const QString& userId() const;

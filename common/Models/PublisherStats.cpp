@@ -37,8 +37,10 @@ void PublisherStats::setPublisherId(const QString& publisherId) { m_publisherId 
 void PublisherStats::setBookStats(const QVector<BookStatItem*>& bookStats) {
     qDeleteAll(m_bookStats);
     m_bookStats = bookStats;
+    // recalculate() already emits statsChanged(), so we don't emit again
+    // here — previously this caused subscribers to receive the signal twice
+    // for a single state change.
     recalculate();
-    emit statsChanged();
 }
 
 void PublisherStats::setTotalBooks(int totalBooks) { m_totalBooks = totalBooks; }

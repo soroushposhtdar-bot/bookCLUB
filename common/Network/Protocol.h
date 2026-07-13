@@ -15,6 +15,7 @@ enum class Command : quint16 {
     Login,
     Register,
     ResetPassword,
+    ChangePassword,
     Logout,
 
     // Book Catalog

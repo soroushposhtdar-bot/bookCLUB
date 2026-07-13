@@ -8,6 +8,7 @@ QString commandToString(Command cmd) {
         case Command::Login: return "Login";
         case Command::Register: return "Register";
         case Command::ResetPassword: return "ResetPassword";
+        case Command::ChangePassword: return "ChangePassword";
         case Command::Logout: return "Logout";
         case Command::GetHomeSections: return "GetHomeSections";
         case Command::SearchBooks: return "SearchBooks";

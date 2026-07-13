@@ -12,7 +12,7 @@ class Cart : public QObject {
     Q_OBJECT
 public:
     explicit Cart(QObject* parent = nullptr);
-    ~Cart() override = default;
+    ~Cart() override;
 
     const QString& userId() const;
     const QVector<CartItem*>& items() const;

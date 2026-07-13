@@ -37,7 +37,7 @@ class PublisherStats : public QObject {
     Q_OBJECT
 public:
     explicit PublisherStats(QObject* parent = nullptr);
-    ~PublisherStats() override = default;
+    ~PublisherStats() override;
 
     const QString& publisherId() const;
     const QVector<BookStatItem*>& bookStats() const;

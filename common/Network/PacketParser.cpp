@@ -2,6 +2,7 @@
 #include "common/Network/PacketParser.h"
 #include <QJsonDocument>
 #include <QJsonParseError>
+#include <QDebug>
 
 namespace bookclub::common {
 
@@ -14,7 +15,7 @@ QByteArray PacketParser::pack(const Message& message) {
 
     QByteArray packet;
     QDataStream stream(&packet, QIODevice::WriteOnly);
-    stream.setVersion(QDataStream::Qt_6_0);
+    stream.setVersion(QDataStream::Qt_5_12);
 
     // هدر: ۴ بایت برای طول داده‌های JSON
     quint32 payloadSize = static_cast<quint32>(jsonData.size());
@@ -36,7 +37,7 @@ bool PacketParser::hasNextPacket() const {
     // اگر سایز بعدی را نمی‌دانیم، از بافر بخوانیم
     if (m_nextExpectedSize == 0) {
         QDataStream stream(m_buffer);
-        stream.setVersion(QDataStream::Qt_6_0);
+        stream.setVersion(QDataStream::Qt_5_12);
         stream >> const_cast<quint32&>(m_nextExpectedSize);
     }
 
