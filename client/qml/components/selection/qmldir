@@ -1,0 +1,8 @@
+# Explicit qmldir for components/selection/
+# Lists every QML type defined in this folder so Qt 6.5+ does not
+# rely on implicit-module resolution (which is fragile when the
+# parent folder has both .qml files and sub-directories).
+
+AppCheckbox 1.0 AppCheckbox.qml
+AppRadioButton 1.0 AppRadioButton.qml
+AppToggleButton 1.0 AppToggleButton.qml

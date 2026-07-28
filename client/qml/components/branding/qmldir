@@ -1,0 +1,7 @@
+# Explicit qmldir for components/branding/
+# Lists every QML type defined in this folder so Qt 6.5+ does not
+# rely on implicit-module resolution (which is fragile when the
+# parent folder has both .qml files and sub-directories).
+
+BrandLogo 1.0 BrandLogo.qml
+SecurityBadge 1.0 SecurityBadge.qml

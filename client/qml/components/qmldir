@@ -1,0 +1,28 @@
+# =============================================================================
+#  components/qmldir
+# =============================================================================
+#  Explicit qmldir for the components/ directory.
+#
+#  Why this exists:
+#    In Qt 6.5+ (and especially Qt 6.11), implicit-module resolution for a
+#    directory that mixes top-level .qml files with sub-directories can fail
+#    with errors like:
+#
+#        qrc:/qt/qml/bookclub/client/qml/publisher/PublisherShell.qml:279:25:
+#        AppIcon is not a type
+#
+#    even when AppIcon.qml is present in the imported directory. Adding an
+#    explicit qmldir that lists every type defined directly in this folder
+#    removes the ambiguity and makes the type registration deterministic.
+#
+#  Notes:
+#    • This file intentionally does NOT declare a `module` name. It is a
+#      "local" qmldir consumed by path-based imports (e.g.
+#      `import "../components"`), which is how every consumer in this
+#      project imports it.
+#    • Sub-directories (buttons/, navigation/, feedback/, ...) each have
+#      their own .qml files and rely on their own implicit modules; they
+#      are NOT declared here.
+# =============================================================================
+AppIcon 1.0 AppIcon.qml
+NetworkImage 1.0 NetworkImage.qml
