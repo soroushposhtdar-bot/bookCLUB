@@ -1,0 +1,10 @@
+# Explicit qmldir for components/inputs/
+# Lists every QML type defined in this folder so Qt 6.5+ does not
+# rely on implicit-module resolution (which is fragile when the
+# parent folder has both .qml files and sub-directories).
+
+CalendarGrid 1.0 CalendarGrid.qml
+InputField 1.0 InputField.qml
+OtpInput 1.0 OtpInput.qml
+PasswordField 1.0 PasswordField.qml
+SearchField 1.0 SearchField.qml
