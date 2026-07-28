@@ -1,0 +1,16 @@
+# Explicit qmldir for components/navigation/
+# Lists every QML type defined in this folder so Qt 6.5+ does not
+# rely on implicit-module resolution (which is fragile when the
+# parent folder has both .qml files and sub-directories).
+
+Avatar 1.0 Avatar.qml
+Breadcrumb 1.0 Breadcrumb.qml
+NavItem 1.0 NavItem.qml
+Pagination 1.0 Pagination.qml
+PublisherTopBar 1.0 PublisherTopBar.qml
+Sidebar 1.0 Sidebar.qml
+SortDropdown 1.0 SortDropdown.qml
+TabBar 1.0 TabBar.qml
+TabPanel 1.0 TabPanel.qml
+TopBar 1.0 TopBar.qml
+ViewToggle 1.0 ViewToggle.qml
