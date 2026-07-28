@@ -1,0 +1,21 @@
+# Explicit qmldir for components/data/
+# Lists every QML type defined in this folder so Qt 6.5+ does not
+# rely on implicit-module resolution (which is fragile when the
+# parent folder has both .qml files and sub-directories).
+
+AnimatedCounter 1.0 AnimatedCounter.qml
+EmptyIllustration 1.0 EmptyIllustration.qml
+EmptyState 1.0 EmptyState.qml
+ErrorState 1.0 ErrorState.qml
+FilterChip 1.0 FilterChip.qml
+HeroBanner 1.0 HeroBanner.qml
+NotificationItem 1.0 NotificationItem.qml
+RatingDistribution 1.0 RatingDistribution.qml
+ReviewItem 1.0 ReviewItem.qml
+ReviewReactionButton 1.0 ReviewReactionButton.qml
+SectionCarousel 1.0 SectionCarousel.qml
+SectionHeader 1.0 SectionHeader.qml
+SettingToggleRow 1.0 SettingToggleRow.qml
+ShelfCard 1.0 ShelfCard.qml
+ShelfRow 1.0 ShelfRow.qml
+StatCard 1.0 StatCard.qml

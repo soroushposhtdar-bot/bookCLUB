@@ -1,0 +1,12 @@
+# Explicit qmldir for components/book/
+# Lists every QML type defined in this folder so Qt 6.5+ does not
+# rely on implicit-module resolution (which is fragile when the
+# parent folder has both .qml files and sub-directories).
+
+BookCard 1.0 BookCard.qml
+BookCarousel 1.0 BookCarousel.qml
+BookCover 1.0 BookCover.qml
+BookRow 1.0 BookRow.qml
+GenreChip 1.0 GenreChip.qml
+RatingStars 1.0 RatingStars.qml
+StarInput 1.0 StarInput.qml
