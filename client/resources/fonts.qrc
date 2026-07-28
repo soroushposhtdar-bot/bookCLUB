@@ -1,0 +1,20 @@
+<RCC>
+    <qresource prefix="/">
+        <!-- Material Symbols Outlined — Google's icon font.
+             Loaded by main.cpp via QFontDatabase::addApplicationFont.
+             Source: https://github.com/google/material-design-icons/
+             Licensed under the Apache License, Version 2.0. -->
+        <file>fonts/MaterialSymbolsOutlined-Regular.ttf</file>
+
+        <!-- DejaVu Sans — bundled text font.
+             Used as the app's primary font family so the UI looks
+             identical on every platform and does NOT fall back to
+             device-local fonts (which can render Persian-style digits
+             on Persian-locale systems).
+             Source: https://dejavu-fonts.github.io/
+             Licensed under a permissive free license. -->
+        <file>fonts/DejaVuSans.ttf</file>
+        <file>fonts/DejaVuSans-Bold.ttf</file>
+        <file>fonts/DejaVuSansMono.ttf</file>
+    </qresource>
+</RCC>

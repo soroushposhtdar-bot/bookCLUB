@@ -1,0 +1,10 @@
+# Explicit qmldir for components/buttons/
+# Lists every QML type defined in this folder so Qt 6.5+ does not
+# rely on implicit-module resolution (which is fragile when the
+# parent folder has both .qml files and sub-directories).
+
+FloatingActionButton 1.0 FloatingActionButton.qml
+IconButton 1.0 IconButton.qml
+PrimaryButton 1.0 PrimaryButton.qml
+SecondaryButton 1.0 SecondaryButton.qml
+TextButton 1.0 TextButton.qml

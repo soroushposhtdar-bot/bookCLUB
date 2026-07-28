@@ -1,0 +1,7 @@
+# Explicit qmldir for components/effects/
+# Lists every QML type defined in this folder so Qt 6.5+ does not
+# rely on implicit-module resolution (which is fragile when the
+# parent folder has both .qml files and sub-directories).
+
+DropShadowBase 1.0 DropShadowBase.qml
+RippleEffect 1.0 RippleEffect.qml

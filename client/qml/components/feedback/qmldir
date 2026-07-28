@@ -1,0 +1,10 @@
+# Explicit qmldir for components/feedback/
+ConfirmDialog 1.0 ConfirmDialog.qml
+ConfirmationPopup 1.0 ConfirmationPopup.qml
+ContextMenu 1.0 ContextMenu.qml
+OfflineBanner 1.0 OfflineBanner.qml
+Spinner 1.0 Spinner.qml
+Toast 1.0 Toast.qml
+ToastManager 1.0 ToastManager.qml
+UndoToast 1.0 UndoToast.qml
+ValidationMessage 1.0 ValidationMessage.qml
