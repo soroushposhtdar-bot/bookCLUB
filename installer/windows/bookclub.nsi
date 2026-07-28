@@ -1,1 +1,0 @@
-; TODO: NSIS installer script
