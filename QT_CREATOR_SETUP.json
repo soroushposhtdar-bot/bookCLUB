@@ -1,0 +1,39 @@
+{
+    "_comment": "Qt Creator project configuration for BookCLUB",
+    "_comment2": "This file is informational — Qt Creator reads CMakeLists.txt + CMakePresets.json.",
+
+    "recommendedKit": "Qt 6.11.x MinGW 64-bit",
+    "recommendedPreset": "default",
+
+    "runConfigurations": {
+        "server": {
+            "executable": "BookClubServer",
+            "arguments": "-p 8080",
+            "workingDirectory": "${sourceDir}",
+            "_comment": "Run from the source directory so database/schema.sql is found"
+        },
+        "client": {
+            "executable": "BookClubClient",
+            "arguments": "",
+            "workingDirectory": "${sourceDir}",
+            "_comment": "Run from the source directory so the server's DB is in the same location"
+        },
+        "both": {
+            "script": "scripts/run_both.bat",
+            "_comment": "Starts server + client together"
+        }
+    },
+
+    "tips": [
+        "1. Open CMakeLists.txt in Qt Creator (File → Open File or Project)",
+        "2. Select your Qt 6.11 MinGW kit when prompted",
+        "3. Use the 'default' preset — it auto-detects Qt from the kit",
+        "4. Build both targets: Ctrl+B",
+        "5. To run the server: select 'BookClubServer' as the active run configuration, Ctrl+R",
+        "6. To run the client: select 'BookClubClient' as the active run configuration, Ctrl+R",
+        "7. To run both: use scripts/run_both.bat from a terminal",
+        "8. The server must be running before the client can log in",
+        "9. Demo accounts: admin/admin, publisher1/publisher1, amir/amir1234",
+        "10. The database (bookclub.db) is created in the working directory on first run"
+    ]
+}
