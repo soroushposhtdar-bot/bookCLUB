@@ -1,0 +1,1 @@
+This package contains the original headers plus an expanded Qt/C++ project scaffold.
